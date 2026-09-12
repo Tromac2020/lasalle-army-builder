@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { nations, getNation } from './data/nations';
 import type { Corps } from './data/types';
 import {
@@ -13,6 +13,8 @@ import {
 import BrigadeCard from './components/BrigadeCard';
 import Summary from './components/Summary';
 import Stepper from './components/Stepper';
+import PrintList from './components/PrintList';
+import PrintCards from './components/PrintCards';
 
 function emptyLineSelections(nationId: string, brigadeId: string): Record<string, number>[] {
   const def = getBrigadeDef(nationId, brigadeId);
@@ -22,6 +24,18 @@ function emptyLineSelections(nationId: string, brigadeId: string): Record<string
 export default function App() {
   const [army, setArmy] = useState<ArmyState>(newArmy());
   const [foreignPick, setForeignPick] = useState<string>('');
+  const [printMode, setPrintMode] = useState<'list' | 'cards' | null>(null);
+
+  useEffect(() => {
+    if (!printMode) return;
+    const t = setTimeout(() => window.print(), 50);
+    const onAfter = () => setPrintMode(null);
+    window.addEventListener('afterprint', onAfter);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener('afterprint', onAfter);
+    };
+  }, [printMode]);
 
   const nation = army.nationId ? getNation(army.nationId) : undefined;
 
@@ -87,7 +101,8 @@ export default function App() {
   const foreignBrigadesInArmy = army.brigades.filter((b) => b.isForeign);
 
   return (
-    <div className="min-h-screen">
+    <>
+    <div className="min-h-screen screen-only">
       <header className="bg-stone-800 text-stone-100 py-4 px-4 no-print">
         <div className="max-w-5xl mx-auto flex items-center justify-between flex-wrap gap-2">
           <div>
@@ -275,7 +290,9 @@ export default function App() {
         </div>
 
         <div className="lg:col-span-1">
-          {nation ? <Summary army={army} /> : (
+          {nation ? (
+            <Summary army={army} onPrintList={() => setPrintMode('list')} onPrintCards={() => setPrintMode('cards')} />
+          ) : (
             <div className="bg-white rounded-lg border border-stone-300 p-4 text-sm text-stone-500">
               Pick a nation to start building your order of battle.
             </div>
@@ -289,6 +306,11 @@ export default function App() {
         Sapeur / ADC / Partisan costs are not printed in the Army Maker booklet — set your own house-rule value where they appear.
       </footer>
     </div>
+    <div className="print-only">
+      {printMode === 'list' && <PrintList army={army} />}
+      {printMode === 'cards' && <PrintCards army={army} />}
+    </div>
+    </>
   );
 }
 

@@ -1,7 +1,7 @@
 import type { Nation, Brigade, Corps } from '../data/types';
 import { getNation, findUnit } from '../data/nations';
 
-export { getNation } from '../data/nations';
+export { getNation, findUnit } from '../data/nations';
 
 export type LineSelection = Record<string, number>; // option name -> count
 

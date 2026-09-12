@@ -2,7 +2,13 @@ import { nations } from '../data/nations';
 import type { ArmyState } from '../logic/engine';
 import { getNation, getBrigadeDef, brigadeTotalCost, comboBrigadeCost, earthworksCost, totalArmyCost, validateArmy, lineTotal } from '../logic/engine';
 
-export default function Summary({ army }: { army: ArmyState }) {
+interface Props {
+  army: ArmyState;
+  onPrintList: () => void;
+  onPrintCards: () => void;
+}
+
+export default function Summary({ army, onPrintList, onPrintCards }: Props) {
   if (!army.nationId) return null;
   const nation = getNation(army.nationId)!;
   const issues = validateArmy(army);
@@ -36,12 +42,20 @@ export default function Summary({ army }: { army: ArmyState }) {
         <div className="text-sm text-green-700 mb-3">✓ Legal order of battle{total > army.pointLimit ? '' : '.'}</div>
       )}
 
-      <button
-        className="no-print w-full bg-stone-800 text-white rounded py-1.5 text-sm font-semibold hover:bg-stone-700 mb-4"
-        onClick={() => window.print()}
-      >
-        Print / Save as PDF
-      </button>
+      <div className="no-print flex gap-2 mb-4">
+        <button
+          className="flex-1 bg-stone-800 text-white rounded py-1.5 text-xs font-semibold hover:bg-stone-700"
+          onClick={onPrintList}
+        >
+          Print Army List
+        </button>
+        <button
+          className="flex-1 bg-stone-800 text-white rounded py-1.5 text-xs font-semibold hover:bg-stone-700"
+          onClick={onPrintCards}
+        >
+          Print Unit Cards
+        </button>
+      </div>
 
       <div id="printable-summary" className="text-sm space-y-3">
         {army.brigades.map((bi) => {

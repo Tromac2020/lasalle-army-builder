@@ -9,8 +9,25 @@ body {
   background-color: #f4efe4;
 }
 
+.print-only {
+  display: none;
+}
+
 @media print {
   .no-print {
     display: none !important;
+  }
+  .screen-only {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  @page {
+    margin: 0.4in;
+  }
+  body,
+  .print-only {
+    background: #fff !important;
   }
 }
