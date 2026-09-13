@@ -12,7 +12,7 @@ export default function UnitCard({ name, cost, profile, subtitle }: Props) {
   return (
     <div
       className="border-2 border-stone-700 rounded bg-white p-2 flex flex-col gap-1.5"
-      style={{ breakInside: 'avoid', pageBreakInside: 'avoid', width: '3.2in' }}
+      style={{ breakInside: 'avoid', pageBreakInside: 'avoid', width: '3.6in' }}
     >
       <div className="flex items-center justify-between gap-2 border-b border-stone-300 pb-1">
         <div className="min-w-0">
@@ -44,33 +44,33 @@ export default function UnitCard({ name, cost, profile, subtitle }: Props) {
               ))}
             </div>
             <span className="text-[10px] text-stone-500">fire dice</span>
-            <div className="flex items-center gap-0.5 ml-auto">
-              <KindIcon kind="artillery" size={18} />
-              <span className="text-[11px] font-bold">{profile.toHit}</span>
+            <div className="flex items-center gap-1 ml-auto">
+              <KindIcon kind="artillery" size={22} />
+              <span className="text-[13px] font-bold">{profile.toHit}</span>
             </div>
           </div>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               {profile.traits.map((t) => (
                 <span key={t} title={traitLabel(t)}>
-                  <TraitIcon trait={t} size={16} />
+                  <TraitIcon trait={t} size={28} />
                 </span>
               ))}
             </div>
-            <ResolveBurst value={profile.resolve} size={26} />
+            <ResolveBurst value={profile.resolve} size={46} />
           </div>
         </>
       ) : (
         <>
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {profile.kind === 'cavalry' ? <KindIcon kind="cavalry" size={20} /> : <SkirmishBadge value={profile.skirmish ?? 0} size={20} />}
+          <div className="flex items-center gap-2 flex-wrap">
+            {profile.kind === 'cavalry' ? <KindIcon kind="cavalry" size={24} /> : <SkirmishBadge value={profile.skirmish ?? 0} size={24} />}
             {profile.traits.map((t) => (
               <span key={t} title={traitLabel(t)}>
-                <TraitIcon trait={t} size={16} />
+                <TraitIcon trait={t} size={28} />
               </span>
             ))}
             <div className="ml-auto">
-              <ResolveBurst value={profile.resolve} size={26} />
+              <ResolveBurst value={profile.resolve} size={46} />
             </div>
           </div>
           <div className="flex gap-0.5">
