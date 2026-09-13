@@ -71,8 +71,8 @@ export default function PrintCards({ army }: { army: ArmyState }) {
     <div className="p-6">
       <h1 className="text-xl font-bold mb-1">{nation?.name ?? 'Army'} — Unit Cards</h1>
       <p className="text-xs text-stone-500 mb-4">
-        One card per unit in the order of battle. Cut apart and use as tabletop tracking sheets. Icon artwork is an
-        original rendering, not reproduced from the source booklet.
+        One card per unit in the order of battle. Cut apart and use as tabletop tracking sheets. Icon artwork is the
+        official game's own artwork, used with the rights holder's permission.
       </p>
       {cards.length === 0 && <p className="text-sm text-stone-500 italic">No units purchased yet.</p>}
       <div className="flex flex-wrap gap-3">
@@ -83,6 +83,7 @@ export default function PrintCards({ army }: { army: ArmyState }) {
             cost={instance.cost}
             profile={getCardProfile(instance.nationId, instance.name)}
             subtitle={instance.nationId !== army.nationId ? getNation(instance.nationId)?.name : undefined}
+            nationId={instance.nationId}
           />
         ))}
       </div>

@@ -20,6 +20,39 @@ Icon artwork went through four rounds before landing:
 
 **Do not use the `lasalle-png-icons.zip` pack (or any similar extracted-PDF material) as source-of-truth art in a *different* project, or for anything beyond this app, without independently re-confirming permission** — the permission here is specific to Troy's statement that the Lasalle rulebook author authorized this fan tool's use of the official templates/artwork.
 
+### Round 5: card layout redesign (to more closely match the printed originals)
+
+Troy's feedback after round 4 shipped: "Is there anything you can do to make the printed cards look more like the originals? They don't look very good." The icon *artwork* itself was fine by then (round 4) — the problem was the overall card layout/chrome around it. Re-read the source PDF's actual populated Army Tablet cards (pages 14-15, Austria) and the core rulebook's blank card-label template (page 2) directly to compare against, and extracted page 15 at 300dpi to study the artillery cards' dice/to-hit treatment closely. Found and fixed five gaps in `UnitCard.tsx` / `icons.tsx`:
+
+1. Header now has a steel-gray linear gradient background with a thick black bottom border (was a plain white header with a thin gray line).
+2. The point-cost badge is now a metallic gold coin (`CostBadge`, radial-gradient SVG) instead of a flat amber circle.
+3. The cavalry/artillery "kind" icon (mounted horseman / cannon) moved from the card body into the header, next to the cost badge — matching the original layout. (Previously it was incorrectly placed in the body next to the trait icons.)
+4. Artillery cards' to-hit value now shows the source material's "dice pair + soft red halo" treatment (`DicePair` + `ToHitBadge`, both new hand-authored SVG — no matching asset existed in the permitted extraction pack for this specific compound treatment) instead of plain text.
+5. Card typography switched from the app's inherited Georgia serif to `font-sans`, matching the source's cleaner sans-serif card labels.
+
+Also corrected the printed-cards page caption, which still said "Icon artwork is an original rendering, not reproduced from the source booklet" — a leftover from before round 4's permission was confirmed. It now reads "Icon artwork is the official game's own artwork, used with the rights holder's permission."
+
+Re-tested via Playwright across Austria (Grenz/Jäger/Landwehr/Musketeer/Hussar/Insurrection Cavalry/artillery), Britain (Foot Guard/Foot Regiment/Rifle regiment/Brunswick units/artillery), and an Austria Cuirassier/Grenadier-focused spread — zero console errors, and close-up crops confirmed clean rendering of the new header gradient, cost badge, dice pair, and to-hit halo with no clipping or glitches.
+
+### Round 6: per-nation header colors
+
+Troy's next request: "can you colour the card headers based on the country as per the originals in the pdf." Round 5 gave every nation the same neutral steel-gray header; the source booklet actually gives each of the 7 major powers its own header color and keeps every minor power on a shared near-black header. Confirmed this by extracting and sampling each major power's Army Tablet page (not just the section title bar — the actual unit-card headers) at high resolution, and by checking several minor-power pages (Brunswick, Italy) plus their brigade-list bars: every minor power uses the same near-black `#231f20`, while the majors are each genuinely distinct:
+
+- Austria: neutral steel-gray (`#c9cdd1`) — matches the booklet's own neutral UI chrome; Austria doesn't get a "flag color" like the others.
+- Britain: red (`#c8212a`)
+- France: royal blue (`#3969b1`)
+- Prussia (both early and late war lists): navy (`#1c2a52`)
+- Russia: dark green (`#1a532b`)
+- Spain: yellow (`#fbe500`)
+- Turkey: light green (`#7dcf73`)
+- All 14 minor powers: near-black (`#231f20`)
+
+Also checked whether the header's kind icon (mounted horseman / cannon) or the cost badge get recolored for contrast on dark headers — they don't in the source material (a French cavalry card on the blue header still shows a plain black horse silhouette), so `KindIcon` and `CostBadge` were left untouched; only the header background, unit-name text color, and (foreign-contingent) subtitle text color are nation-aware now.
+
+Implementation: new `src/data/nationColors.ts` maps nation id → `{bg, text, subtitle}` (major powers keyed individually, everything else falls through to the shared minor-power default), plus a small `shade()` helper that derives a light-to-dark gradient from each nation's base color so the header keeps the same raised/gradient look as round 5 rather than going flat. `UnitCard.tsx` takes a new optional `nationId` prop and uses it for the header gradient and text colors; `PrintCards.tsx` passes `instance.nationId` through.
+
+Verified with Playwright by building a brigade for each of Austria/Britain/France/Prussia/Russia/Spain/Turkey plus one minor power (Poland) and printing cards for each — zero console errors, and the rendered header colors/text contrast matched the sampled PDF colors closely across all eight.
+
 Units with no printed tablet card (Sapeur/ADC/Partisans — cost is a house-rule value, as noted above) are simply skipped when generating cards, matching the source material.
 
 Tested via Playwright: built a Britain army (Infantry/Guards/Heavy Cavalry brigades incl. attached assets) and an Austria Avant-Garde brigade (mixing Grenz/Jäger/Landwehr/Musketeer/Hussar/artillery — a good spread of traits), rendered both print views under `page.emulateMedia({media:'print'})`, and visually confirmed track/resolve/traits/fire-dice render correctly with no console errors.
