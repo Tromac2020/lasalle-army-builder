@@ -33,7 +33,7 @@ export default function UnitCard({ name, cost, profile, subtitle, nationId }: Pr
   return (
     <div
       className="border-[1.5px] border-stone-900 rounded-sm bg-white flex flex-col font-sans overflow-hidden"
-      style={{ breakInside: 'avoid', pageBreakInside: 'avoid', width: '3.6in' }}
+      style={{ breakInside: 'avoid', pageBreakInside: 'avoid', width: '2.75in' }}
     >
       <div
         className="flex items-center justify-between gap-2 px-2 py-1 border-b-[2.5px] border-stone-900"
@@ -64,7 +64,7 @@ export default function UnitCard({ name, cost, profile, subtitle, nationId }: Pr
         ) : profile.kind === 'artillery' ? (
           <div className="flex items-center gap-2 flex-wrap">
             <TrackBoxes track={profile.track} shaken={profile.shaken} />
-            <DicePair size={24} />
+            <DicePair count={profile.firepower ?? 2} size={26} />
             {profile.toHit && <ToHitBadge value={profile.toHit} size={30} />}
             {profile.traits.map((t) => (
               <span key={t} title={traitLabel(t)}>

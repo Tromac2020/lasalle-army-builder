@@ -38,6 +38,8 @@ export interface CardProfile {
   traits: Trait[];
   /** Artillery only: the To-Hit number, e.g. "4+" or "5+". */
   toHit?: string;
+  /** Artillery only: number of firepower dice shown (from the "Open Architecture" firepower/cost table, p.61). */
+  firepower?: number;
 }
 
 interface LevelDef {
@@ -73,8 +75,8 @@ function cav(level: number, traits: Trait[] = [], skirmish?: number): CardProfil
   return { kind: 'cavalry', skirmish, resolve: l.resolve, track: l.track, shaken: l.shaken, traits };
 }
 
-function art(toHit: string, traits: Trait[] = []): CardProfile {
-  return { kind: 'artillery', resolve: '6', track: [2, 1], shaken: 1, toHit, traits };
+function art(toHit: string, firepower: number, traits: Trait[] = []): CardProfile {
+  return { kind: 'artillery', resolve: '6', track: [2, 1], shaken: 1, toHit, firepower, traits };
 }
 
 /** Keyed by `${nationId}:${name}` exactly as `name` appears in nations.ts units[]. */
@@ -91,11 +93,11 @@ export const PROFILES: Record<string, CardProfile> = {
   'austria:Uhlan': cav(2, ['lancers']),
   'austria:Hussar': cav(1),
   'austria:Insurrection Cavalry': cav(5, ['cavSkirmishers'], 1),
-  'austria:Light Brigade Battery': art('5+'),
-  'austria:Brigade Battery': art('4+'),
-  'austria:Heavy Position Battery': art('4+', ['heavyArt']),
-  'austria:Position Battery': art('4+'),
-  'austria:Cavalry Battery': art('4+', ['horseArt']),
+  'austria:Light Brigade Battery': art('5+', 4),
+  'austria:Brigade Battery': art('4+', 4),
+  'austria:Heavy Position Battery': art('4+', 3, ['heavyArt']),
+  'austria:Position Battery': art('4+', 3),
+  'austria:Cavalry Battery': art('4+', 3, ['horseArt']),
 
   // ---------------------------------------------------------------- Britain
   'britain:Foot Guard': inf(1, 3, ['rapidFire', 'resilient']),
@@ -106,9 +108,9 @@ export const PROFILES: Record<string, CardProfile> = {
   'britain:Hanoverian Militia': inf(6, 2),
   'britain:Guard & Dragoons': cav(1, ['shockCav']),
   'britain:Lt. Dragoon & Hussar': cav(2),
-  'britain:Foot Artillery': art('4+'),
-  'britain:Horse Artillery': art('4+', ['horseArt']),
-  'britain:Rocket Troop': art('5+'),
+  'britain:Foot Artillery': art('4+', 3),
+  'britain:Horse Artillery': art('4+', 3, ['horseArt']),
+  'britain:Rocket Troop': art('5+', 3, ['horseArt']),
 
   // ----------------------------------------------------------------- France
   'france:Old Guard Infantry': inf(1, 3, ['attackColumns', 'resilient']),
@@ -125,11 +127,11 @@ export const PROFILES: Record<string, CardProfile> = {
   'france:Light Cavalry (1813-14)': cav(3),
   'france:Light Cavalry (1813-14, Lancer)': cav(3, ['lancers']),
   'france:Young Gd. Cavalry (1813-14)': cav(2),
-  'france:Field Artillery': art('4+'),
-  'france:Reserve Artillery': art('4+', ['heavyArt']),
-  'france:Horse Artillery': art('4+', ['horseArt']),
-  'france:Old Gd. Reserve Artillery': art('4+', ['heavyArt']),
-  'france:Old Gd. Horse Artillery': art('4+', ['horseArt']),
+  'france:Field Artillery': art('4+', 4),
+  'france:Reserve Artillery': art('4+', 4, ['heavyArt']),
+  'france:Horse Artillery': art('4+', 3, ['horseArt']),
+  'france:Old Gd. Reserve Artillery': art('4+', 5, ['heavyArt']),
+  'france:Old Gd. Horse Artillery': art('4+', 4, ['horseArt']),
 
   // ------------------------------------------------------- Prussia (early)
   'prussia-early:Grenadier & Garde zu Fuß': inf(1, 1, ['rapidFire']),
@@ -140,9 +142,9 @@ export const PROFILES: Record<string, CardProfile> = {
   'prussia-early:Dragoon': cav(1),
   'prussia-early:Hussar': cav(1),
   'prussia-early:Uhlan': cav(2, ['lancers']),
-  'prussia-early:Field Artillery': art('4+'),
-  'prussia-early:Heavy Artillery': art('4+', ['heavyArt']),
-  'prussia-early:Horse Artillery': art('4+', ['horseArt']),
+  'prussia-early:Field Artillery': art('4+', 4),
+  'prussia-early:Heavy Artillery': art('4+', 4, ['heavyArt']),
+  'prussia-early:Horse Artillery': art('4+', 4, ['horseArt']),
 
   // -------------------------------------------------------- Prussia (late)
   'prussia-late:Grenadiers & Garde zu Fuß': inf(2, 2, ['attackColumns']),
@@ -155,10 +157,10 @@ export const PROFILES: Record<string, CardProfile> = {
   'prussia-late:Dragoon or Hussar': cav(2),
   'prussia-late:Uhlan': cav(2, ['lancers']),
   'prussia-late:Landwehr Cavalry': cav(4, ['lancers']),
-  'prussia-late:Field Artillery': art('4+'),
-  'prussia-late:Horse Artillery': art('4+', ['horseArt']),
-  'prussia-late:Heavy Artillery': art('4+', ['heavyArt']),
-  'prussia-late:Howitzer': art('4+'),
+  'prussia-late:Field Artillery': art('4+', 4),
+  'prussia-late:Horse Artillery': art('4+', 4, ['horseArt']),
+  'prussia-late:Heavy Artillery': art('4+', 4, ['heavyArt']),
+  'prussia-late:Howitzer': art('4+', 3),
 
   // ----------------------------------------------------------------- Russia
   'russia:Guard Infantry': inf(1, 2, ['resilient']),
@@ -172,9 +174,9 @@ export const PROFILES: Record<string, CardProfile> = {
   'russia:Hussar': cav(1),
   'russia:Uhlan': cav(2, ['lancers']),
   'russia:Cossack': cav(5, ['cavSkirmishers'], 1),
-  'russia:Foot Battery': art('4+'),
-  'russia:Horse Battery': art('4+', ['horseArt']),
-  'russia:Heavy Battery': art('4+', ['heavyArt']),
+  'russia:Foot Battery': art('4+', 5),
+  'russia:Horse Battery': art('4+', 5, ['horseArt']),
+  'russia:Heavy Battery': art('4+', 5, ['heavyArt']),
 
   // ------------------------------------------------------------------ Spain
   'spain:Elite Regiment': inf(3, 2),
@@ -185,8 +187,8 @@ export const PROFILES: Record<string, CardProfile> = {
   'spain:Guard or Elite Cavalry': cav(3),
   'spain:Dragoons or Hussars': cav(4),
   'spain:Guerilla Cavalry': cav(5, ['cavSkirmishers'], 1),
-  'spain:Heavy Battery': art('4+', ['heavyArt']),
-  'spain:Foot Battery': art('5+'),
+  'spain:Heavy Battery': art('4+', 3, ['heavyArt']),
+  'spain:Foot Battery': art('5+', 3),
 
   // ----------------------------------------------------------------- Turkey
   'turkey:Nizam i Çedid': inf(3, 1),
@@ -196,9 +198,9 @@ export const PROFILES: Record<string, CardProfile> = {
   'turkey:Household Cavalry': cav(1),
   'turkey:Kapikulu Cavalry': cav(3),
   'turkey:Sipahis': cav(5, ['cavSkirmishers', 'lancers'], 1),
-  'turkey:Mobile Battery': art('5+', ['horseArt']),
-  'turkey:Heavy Artillery': art('5+', ['heavyArt']),
-  'turkey:Field Battery': art('5+'),
+  'turkey:Mobile Battery': art('5+', 4, ['horseArt']),
+  'turkey:Heavy Artillery': art('5+', 4, ['heavyArt']),
+  'turkey:Field Battery': art('5+', 4),
 
   // --------------------------------------------------------------- Bavaria
   'bavaria:Infantry (veteran)': inf(3, 2),
@@ -206,9 +208,9 @@ export const PROFILES: Record<string, CardProfile> = {
   'bavaria:All Infantry (1813)': inf(5, 2),
   'bavaria:Light Battalion': inf(3, 3),
   'bavaria:Cavalry': cav(2),
-  'bavaria:Foot Battery': art('4+'),
-  'bavaria:Heavy Battery': art('4+', ['heavyArt']),
-  'bavaria:"Light" Battery': art('4+', ['horseArt']),
+  'bavaria:Foot Battery': art('4+', 3),
+  'bavaria:Heavy Battery': art('4+', 3, ['heavyArt']),
+  'bavaria:"Light" Battery': art('4+', 3, ['horseArt']),
 
   // ------------------------------------------------------------- Brunswick
   'brunswick:1806 Light Battalion': inf(3, 3),
@@ -217,8 +219,8 @@ export const PROFILES: Record<string, CardProfile> = {
   'brunswick:1815 Infantry (conscript)': inf(4, 3),
   'brunswick:Infantry (1809-1814)': inf(3, 3),
   'brunswick:Light Cavalry': cav(2),
-  'brunswick:Foot Battery': art('4+'),
-  'brunswick:Horse Battery': art('4+', ['horseArt']),
+  'brunswick:Foot Battery': art('4+', 3),
+  'brunswick:Horse Battery': art('4+', 3, ['horseArt']),
 
   // -------------------------------------------------- Confederation of the Rhine
   'confederation:Infantry (elite)': inf(2, 2),
@@ -226,8 +228,8 @@ export const PROFILES: Record<string, CardProfile> = {
   'confederation:Infantry (conscript)': inf(4, 2),
   'confederation:Light Battalion': inf(3, 3),
   'confederation:Cavalry': cav(2),
-  'confederation:Foot Battery': art('4+'),
-  'confederation:Horse Battery': art('4+', ['horseArt']),
+  'confederation:Foot Battery': art('4+', 4),
+  'confederation:Horse Battery': art('4+', 3, ['horseArt']),
 
   // --------------------------------------------------------------- Denmark
   'denmark:Jäger': inf(3, 3),
@@ -235,16 +237,16 @@ export const PROFILES: Record<string, CardProfile> = {
   'denmark:Militia': inf(5, 1, ['weakFire']),
   'denmark:Ryterre': cav(2),
   'denmark:Hussar or Lt. Dragoon': cav(3),
-  'denmark:Foot Battery': art('4+'),
-  'denmark:Horse Battery': art('4+', ['horseArt']),
+  'denmark:Foot Battery': art('4+', 4),
+  'denmark:Horse Battery': art('4+', 4, ['horseArt']),
 
   // ---------------------------------------------------------------- Holland
   'holland:Infantry (veteran)': inf(3, 3),
   'holland:Infantry (conscript)': inf(4, 2),
   'holland:Light Cavalry': cav(2),
   'holland:Cuirassier': cav(1, ['shockCav']),
-  'holland:Foot Battery': art('4+'),
-  'holland:Horse Battery': art('4+', ['horseArt']),
+  'holland:Foot Battery': art('4+', 4),
+  'holland:Horse Battery': art('4+', 3, ['horseArt']),
 
   // ------------------------------------------------------------------ Italy
   'italy:Infantry (guard)': inf(2, 3),
@@ -252,9 +254,9 @@ export const PROFILES: Record<string, CardProfile> = {
   'italy:Infantry (conscript)': inf(4, 2),
   'italy:Guard Cavalry': cav(1),
   'italy:Dragoons & Lt. Cav': cav(2),
-  'italy:Reserve Battery': art('4+', ['heavyArt']),
-  'italy:Foot Battery': art('4+'),
-  'italy:Horse Battery': art('4+', ['horseArt']),
+  'italy:Reserve Battery': art('4+', 4, ['heavyArt']),
+  'italy:Foot Battery': art('4+', 4),
+  'italy:Horse Battery': art('4+', 3, ['horseArt']),
 
   // ----------------------------------------------------------------- Naples
   'naples:Infantry (guard)': inf(4, 2),
@@ -262,23 +264,23 @@ export const PROFILES: Record<string, CardProfile> = {
   'naples:All Infantry (1813-15)': inf(6, 2),
   'naples:Guard Cavalry': cav(3),
   'naples:Cavalry': cav(4),
-  'naples:Reserve Battery': art('4+', ['heavyArt']),
-  'naples:Foot Battery': art('4+'),
-  'naples:Horse Battery': art('4+', ['horseArt']),
+  'naples:Reserve Battery': art('4+', 4, ['heavyArt']),
+  'naples:Foot Battery': art('4+', 4),
+  'naples:Horse Battery': art('4+', 3, ['horseArt']),
 
   // ------------------------------------------------ Kingdom of the Netherlands (1815)
   'netherlands1815:Infantry': inf(4, 3),
   'netherlands1815:Militia': inf(5, 2),
   'netherlands1815:Cavalry': cav(3),
-  'netherlands1815:Foot Battery': art('4+'),
-  'netherlands1815:Horse Battery': art('4+', ['horseArt']),
+  'netherlands1815:Foot Battery': art('4+', 3),
+  'netherlands1815:Horse Battery': art('4+', 3, ['horseArt']),
 
   // --------------------------------------------------------------- Portugal
   'portugal:Infantry (veteran)': inf(3, 3),
   'portugal:Infantry (conscript)': inf(4, 3),
   'portugal:Caçadores': inf(3, 3),
   'portugal:Cavalry': cav(5),
-  'portugal:Foot Artillery': art('4+'),
+  'portugal:Foot Artillery': art('4+', 3),
 
   // ----------------------------------------------------- Poland (Duchy of Warsaw)
   'poland:Infantry (veteran)': inf(3, 3, ['attackColumns']),
@@ -286,9 +288,9 @@ export const PROFILES: Record<string, CardProfile> = {
   'poland:Light Cavalry': cav(2),
   'poland:Cuirassier': cav(1),
   'poland:Lancer': cav(1, ['lancers']),
-  'poland:Reserve Battery': art('4+', ['heavyArt']),
-  'poland:Foot Battery': art('4+'),
-  'poland:Horse Battery': art('4+', ['horseArt']),
+  'poland:Reserve Battery': art('4+', 4, ['heavyArt']),
+  'poland:Foot Battery': art('4+', 4),
+  'poland:Horse Battery': art('4+', 3, ['horseArt']),
 
   // ---------------------------------------------------------------- Saxony
   'saxony:Guard or Grenadier': inf(3, 1),
@@ -298,9 +300,9 @@ export const PROFILES: Record<string, CardProfile> = {
   'saxony:All Infantry (1813)': inf(5, 2),
   'saxony:Light Cavalry': cav(2),
   'saxony:Heavy Cavalry': cav(1, ['shockCav']),
-  'saxony:Foot Battery': art('4+'),
-  'saxony:Horse Battery': art('4+', ['horseArt']),
-  'saxony:Heavy Battery': art('4+', ['heavyArt']),
+  'saxony:Foot Battery': art('4+', 3),
+  'saxony:Horse Battery': art('4+', 3, ['horseArt']),
+  'saxony:Heavy Battery': art('4+', 3, ['heavyArt']),
 
   // ---------------------------------------------------------------- Sweden
   'sweden:Guard Infantry': inf(3, 2),
@@ -308,9 +310,9 @@ export const PROFILES: Record<string, CardProfile> = {
   'sweden:Indelta Infantry': inf(5, 2),
   'sweden:Life Guards': cav(3),
   'sweden:Indelta Cavalry': cav(3),
-  'sweden:Reserve Battery': art('4+', ['heavyArt']),
-  'sweden:Foot Battery': art('4+'),
-  'sweden:Horse Battery': art('4+', ['horseArt']),
+  'sweden:Reserve Battery': art('4+', 4, ['heavyArt']),
+  'sweden:Foot Battery': art('4+', 4),
+  'sweden:Horse Battery': art('4+', 3, ['horseArt']),
 
   // ------------------------------------------------------------- Westphalia
   'westphalia:Guard Infantry': inf(3, 2),
@@ -321,17 +323,17 @@ export const PROFILES: Record<string, CardProfile> = {
   'westphalia:Cuirassier': cav(1, ['shockCav']),
   'westphalia:Cheveauleger': cav(3, ['lancers']),
   'westphalia:Hussar': cav(3),
-  'westphalia:Reserve Battery': art('4+', ['heavyArt']),
-  'westphalia:Foot Battery': art('4+'),
-  'westphalia:Horse Battery': art('4+', ['horseArt']),
+  'westphalia:Reserve Battery': art('4+', 4, ['heavyArt']),
+  'westphalia:Foot Battery': art('4+', 4),
+  'westphalia:Horse Battery': art('4+', 3, ['horseArt']),
 
   // ----------------------------------------------------------- Württemberg
   'wurttemberg:Infantry': inf(3, 2),
   'wurttemberg:Light Battalion': inf(3, 3),
   'wurttemberg:Infantry (1813)': inf(5, 2),
   'wurttemberg:Cavalry': cav(2),
-  'wurttemberg:Foot Battery': art('4+'),
-  'wurttemberg:Horse Battery': art('4+', ['horseArt']),
+  'wurttemberg:Foot Battery': art('4+', 4),
+  'wurttemberg:Horse Battery': art('4+', 3, ['horseArt']),
 };
 
 /**

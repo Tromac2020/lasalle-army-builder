@@ -74,6 +74,18 @@ Troy's request: "add version numbering to the app as well as the ability to logi
 
 Setup is entirely Troy's own external work (creating the Supabase project, wiring Google OAuth via Google Cloud Console, adding the two env vars to Netlify) — written up step by step as a standalone doc, `SUPABASE_SETUP.md`, delivered alongside this round. Verified locally with Playwright both with and without Supabase env vars set: with none set, the app renders and behaves exactly as round 6 (no Account panel, zero console errors); a full `tsc -b` + `npm run build` pass was also clean.
 
+### Round 8: artillery firepower dice + card width fix
+
+Troy reported (uploading the core rulebook PDF for reference): "The cards are still not correct, they are missing. Please see pages 19-21 of the rulebook for details." Follow-up clarification (multi-select): cards appear but some details are wrong, a whole category is missing (traits), and cards are too wide compared to the originals.
+
+Investigation first confirmed no unit was structurally missing a card profile at all (0/210 units lack one) — the actual defect was more specific:
+
+1. **Artillery firepower dice were completely unmodeled.** Every artillery card rendered a generic fixed pair of 2 dice regardless of unit type, when the source booklet varies the dice count (3, 4, or 5) per battery type — this is the "how many dice you roll to hit" stat, arguably the single most important number on an artillery card, so it reads as "missing" even though every other field was present. Re-derived the correct dice count for all 62 artillery units from the "Open Architecture" Firepower table (Army Maker p.61: 5 dice = 15pts, 4 dice = 12pts, 3 dice = 10pts base cost, modified by Heavy Artillery +2, Horse Artillery +2, and a 5+ (rather than 4+) to-hit number −2) applied against each unit's existing printed cost/to-hit/traits, then cross-checked the formula's output directly against high-resolution crops of Austria's and France's actual printed cards (exact match). `CardProfile` gained a `firepower?: number` field, the `art()` helper now takes it as a required second argument, and all 62 call sites in `cardProfiles.ts` were mechanically updated. `DicePair` (`icons.tsx`) was rewritten from a hardcoded 2-die SVG into a variable-count die-cluster generator (2 dice per row, slight stagger/rotation to match the source art), and `UnitCard.tsx` now passes `profile.firepower` through instead of always rendering 2.
+2. **One data gap found along the way**: Britain's Rocket Troop was missing the Horse Artillery trait entirely (confirmed directly off its printed card image: 3 dice, 5+ to-hit, Horse Artillery). Added.
+3. **Card width**: measured a plain infantry card in the source PDF at 200dpi (≈2.245in × 1.12in, aspect ratio ≈2.0) against our rendered card (≈3.6in wide, ratio ≈2.82) — confirmed quantitatively too wide/squat compared to the originals. Narrowed `UnitCard.tsx`'s fixed width from `3.6in` to `2.75in`.
+
+Re-verified via Playwright across Austria (infantry/cavalry/all three artillery trait combinations), Britain (Rocket Troop specifically), France (Horse Artillery), and Russia (Foot Battery/Horse Battery, the two 5-dice cases) — dice counts, trait icons, nation header colors, and card proportions all render correctly with zero console errors and a clean `tsc -b` build. Version bumped to 1.0.2.
+
 ## What's built
 
 A full React + TypeScript + Vite + Tailwind army builder for *Lasalle Second Edition*, transcribed from the Army Maker v1.22 PDF Troy uploaded (63 pages, all 7 major powers + 14 minor powers).

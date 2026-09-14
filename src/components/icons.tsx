@@ -126,25 +126,48 @@ export function TraitIcon({ trait, size = 24 }: { trait: Trait; size?: number })
   return <IconImg src={src} alt={traitLabel(trait)} title={traitLabel(trait)} size={size} />;
 }
 
-/** A pair of small white dice, matching the "fire dice" icon on artillery cards. */
-export function DicePair({ size = 22 }: { size?: number }) {
-  const h = size * 0.72;
+/** A single small white die showing 5 pips, used to build the firepower dice cluster. */
+function Die({ x, y, rotate }: { x: number; y: number; rotate: number }) {
   return (
-    <svg width={size} height={h} viewBox="0 0 34 24">
-      <g transform="rotate(-10 9 12)">
-        <rect x="1" y="4" width="16" height="16" rx="2.5" fill="#fff" stroke="#2b2620" strokeWidth="1.7" />
-        <circle cx="6.2" cy="9.2" r="1.6" fill="#2b2620" />
-        <circle cx="11.8" cy="12" r="1.6" fill="#2b2620" />
-        <circle cx="6.2" cy="14.8" r="1.6" fill="#2b2620" />
-      </g>
-      <g transform="rotate(8 25 10)">
-        <rect x="17" y="1" width="16" height="16" rx="2.5" fill="#fff" stroke="#2b2620" strokeWidth="1.7" />
-        <circle cx="21.3" cy="5.3" r="1.5" fill="#2b2620" />
-        <circle cx="28.7" cy="5.3" r="1.5" fill="#2b2620" />
-        <circle cx="25" cy="9" r="1.5" fill="#2b2620" />
-        <circle cx="21.3" cy="12.7" r="1.5" fill="#2b2620" />
-        <circle cx="28.7" cy="12.7" r="1.5" fill="#2b2620" />
-      </g>
+    <g transform={`translate(${x} ${y}) rotate(${rotate} 8 8)`}>
+      <rect x="0" y="0" width="16" height="16" rx="2.5" fill="#fff" stroke="#2b2620" strokeWidth="1.7" />
+      <circle cx="4.2" cy="4.2" r="1.5" fill="#2b2620" />
+      <circle cx="11.8" cy="4.2" r="1.5" fill="#2b2620" />
+      <circle cx="8" cy="8" r="1.5" fill="#2b2620" />
+      <circle cx="4.2" cy="11.8" r="1.5" fill="#2b2620" />
+      <circle cx="11.8" cy="11.8" r="1.5" fill="#2b2620" />
+    </g>
+  );
+}
+
+/**
+ * The unit's firepower dice, matching the "number of dice symbols" the Army Maker
+ * shows on each artillery card (p.19/61 of the rulebook — firepower dice count
+ * varies by battery type, from 3 up to 5, and is NOT just a fixed generic pair).
+ * Dice are laid out two per row, matching the source booklet's clustered icon.
+ */
+export function DicePair({ count = 2, size = 22 }: { count?: number; size?: number }) {
+  const cols = 2;
+  const rows = Math.ceil(count / cols);
+  const cellW = 13;
+  const cellH = 11;
+  const dieSize = 16;
+  const vbW = (cols - 1) * cellW + dieSize;
+  const vbH = (rows - 1) * cellH + dieSize;
+  const dice = Array.from({ length: count }, (_, i) => {
+    const row = Math.floor(i / cols);
+    const col = i % cols;
+    // stagger alternate rows slightly and vary rotation a touch, like the source art
+    const x = col * cellW + (row % 2 === 1 ? 2 : 0);
+    const y = row * cellH;
+    const rotate = (i % 2 === 0 ? -8 : 8) + (row % 2 === 1 ? 4 : 0);
+    return <Die key={i} x={x} y={y} rotate={rotate} />;
+  });
+  const w = size;
+  const h = (size * vbH) / vbW;
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${vbW + 2} ${vbH + 2}`}>
+      {dice}
     </svg>
   );
 }
