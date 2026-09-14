@@ -21,15 +21,25 @@ pace; nothing else about the app depends on it.
 ## 2. Get your Project URL and anon key
 
 1. In the Supabase dashboard for your new project, go to **Project Settings**
-   (the gear icon) → **API** (sometimes labeled **Data API**).
-2. Copy the **Project URL** (looks like `https://xxxxxxxx.supabase.co`).
-3. Copy the **anon public** key (a long string under "Project API keys" — NOT the
-   `service_role` key, which must stay secret and isn't used here).
-4. **Send me both of these values in chat** and I'll wire them into the app for you.
+   (the gear icon) → **API Keys**.
+2. Copy the **Project URL** (looks like `https://xxxxxxxx.supabase.co`) — on
+   newer projects this is on the **API Keys** page itself, or under **Data API**
+   if it's a separate tab.
+3. Copy the client-side key. Supabase renamed these in 2026, so depending on
+   when your project was created you'll see one of two labels — either is
+   fine, they do the same job:
+   - Newer projects: the **Publishable key** (starts with `sb_publishable_...`),
+     under the **"Publishable and secret API keys"** tab.
+   - Older projects: the **anon public** key, under "Project API keys."
+   Either way, **do NOT copy the Secret key / `service_role` key** (starts
+   with `sb_secret_...` or is labeled `service_role`) — that one must stay
+   private and is never used in this app.
+4. **Send me the Project URL and the publishable/anon key in chat** and I'll
+   wire them into the app for you. Never paste the Secret key anywhere.
 
-The anon key is *meant* to be public/embedded in the app — it's safe to share with
-me and safe to ship in the built site. Access control is enforced separately (see
-step 3).
+The publishable/anon key is *meant* to be public/embedded in the app — it's safe
+to share with me and safe to ship in the built site. Access control is enforced
+separately, by the Row Level Security policies set up in the next section.
 
 ## 3. Run the database setup script
 
