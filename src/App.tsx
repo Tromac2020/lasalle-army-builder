@@ -29,11 +29,42 @@ export default function App() {
 
   useEffect(() => {
     if (!printMode) return;
-    const t = setTimeout(() => window.print(), 50);
+    let cancelled = false;
+
+    // Wait for every image in the print view (card artwork, resolve bursts, trait
+    // icons, etc.) to actually finish loading before opening the print dialog.
+    // A fixed short delay isn't reliable here: on a fresh page load none of these
+    // PNGs are cached yet, some are 30-60KB, and Chrome's print snapshot simply
+    // omits any <img> that hasn't finished loading — it doesn't wait or retry.
+    // That produced silently blank spots for whichever icons happened to still be
+    // in flight (trait icons and resolve bursts, being requested later, were hit
+    // hardest). Capped with a generous fallback timeout so printing never hangs
+    // if an image genuinely fails to load.
+    async function waitForImagesThenPrint() {
+      // Let React commit the print-only DOM first.
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const root = document.getElementById('print-root');
+      const imgs = root ? Array.from(root.querySelectorAll('img')) : [];
+      const loaders = imgs.map((img) =>
+        img.complete
+          ? Promise.resolve()
+          : new Promise<void>((resolve) => {
+              img.addEventListener('load', () => resolve(), { once: true });
+              img.addEventListener('error', () => resolve(), { once: true });
+            })
+      );
+      await Promise.race([
+        Promise.all(loaders),
+        new Promise((resolve) => setTimeout(resolve, 4000)),
+      ]);
+      if (!cancelled) window.print();
+    }
+
+    void waitForImagesThenPrint();
     const onAfter = () => setPrintMode(null);
     window.addEventListener('afterprint', onAfter);
     return () => {
-      clearTimeout(t);
+      cancelled = true;
       window.removeEventListener('afterprint', onAfter);
     };
   }, [printMode]);
@@ -312,7 +343,7 @@ export default function App() {
         Lasalle Army Maker v{__APP_VERSION__}
       </footer>
     </div>
-    <div className="print-only">
+    <div id="print-root" className="print-only">
       {printMode === 'list' && <PrintList army={army} />}
       {printMode === 'cards' && <PrintCards army={army} />}
     </div>
