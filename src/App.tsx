@@ -15,6 +15,7 @@ import Summary from './components/Summary';
 import Stepper from './components/Stepper';
 import PrintList from './components/PrintList';
 import PrintCards from './components/PrintCards';
+import AccountPanel from './components/AccountPanel';
 
 function emptyLineSelections(nationId: string, brigadeId: string): Record<string, number>[] {
   const def = getBrigadeDef(nationId, brigadeId);
@@ -106,7 +107,9 @@ export default function App() {
       <header className="bg-stone-800 text-stone-100 py-4 px-4 no-print">
         <div className="max-w-5xl mx-auto flex items-center justify-between flex-wrap gap-2">
           <div>
-            <h1 className="text-xl font-bold tracking-wide">⚔ Lasalle Army Maker</h1>
+            <h1 className="text-xl font-bold tracking-wide">
+              ⚔ Lasalle Army Maker <span className="text-stone-500 text-xs font-normal align-middle">v{__APP_VERSION__}</span>
+            </h1>
             <p className="text-stone-400 text-xs">Unofficial army builder for Lasalle 2nd Edition, based on Sam A. Mustafa's Army Maker booklet</p>
           </div>
           {army.nationId && (
@@ -290,6 +293,7 @@ export default function App() {
         </div>
 
         <div className="lg:col-span-1">
+          <AccountPanel army={army} onLoadArmy={setArmy} />
           {nation ? (
             <Summary army={army} onPrintList={() => setPrintMode('list')} onPrintCards={() => setPrintMode('cards')} />
           ) : (
@@ -304,6 +308,8 @@ export default function App() {
         Data transcribed from <i>The Army Maker</i> v1.22 for Lasalle Second Edition by Sam A. Mustafa (Honour Games).
         This is an unofficial fan-made tool; Lasalle and Lasalle Second Edition are copyright Sam Mustafa Publishing LLC.
         Sapeur / ADC / Partisan costs are not printed in the Army Maker booklet — set your own house-rule value where they appear.
+        <br />
+        Lasalle Army Maker v{__APP_VERSION__}
       </footer>
     </div>
     <div className="print-only">

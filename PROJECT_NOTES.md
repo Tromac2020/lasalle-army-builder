@@ -57,6 +57,22 @@ Units with no printed tablet card (Sapeur/ADC/Partisans — cost is a house-rule
 
 Tested via Playwright: built a Britain army (Infantry/Guards/Heavy Cavalry brigades incl. attached assets) and an Austria Avant-Garde brigade (mixing Grenz/Jäger/Landwehr/Musketeer/Hussar/artillery — a good spread of traits), rendered both print views under `page.emulateMedia({media:'print'})`, and visually confirmed track/resolve/traits/fire-dice render correctly with no console errors.
 
+**Debugging note (post-round-6):** Troy reported the live (Netlify) site's printed cards still showed plain gray headers after this shipped. A long diagnostic pass — checking `git remote`/`git log`, `git show HEAD:src/...` content directly, the Netlify deploy log, and a fresh incognito load — confirmed the correct round-6 code was committed, pushed, and deployed the entire time; there was no code or deployment defect. Two red herrings along the way, worth remembering: (1) Troy had the project checked out locally under two similarly-named folders (`lassale-armybuilder` vs the correctly-spelled `lasalle-armybuilder`), which briefly looked like a sync problem but wasn't — only the correctly-spelled one is wired to `git remote`/GitHub; (2) on Windows, `Copy-Item -Recurse` fails to merge into a folder that already has subfolders of the same name ("Container cannot be copied onto existing leaf item") — `robocopy source dest /E` is the right tool for merging a directory tree without deleting anything. The actual root cause: Chrome's print dialog has a "Background graphics" checkbox (under "More settings") that's unticked by default, which silently strips all CSS background colors/gradients — including the nation header colors — from print output. Ticking it fixed the live site immediately with zero code changes. (Troy asked for this to be added, so it's now implemented: `.print-only, .print-only * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }` in `src/index.css` makes Chrome default its "Background graphics" checkbox to on for these pages — verified via Playwright with `page.emulateMedia({media:'print'})` that the computed style is applied and the header colors render correctly with no console errors. Version bumped to 1.0.1 for this fix.)
+
+### Round 7: version numbering + accounts (Google sign-in) + save/load army lists
+
+Troy's request: "add version numbering to the app as well as the ability to login/create a login with Google or email accounts, to save and load created lists." Clarified three open questions with him before building: backend = Supabase; login method = Google only for now (no email/password); saved lists = private to each account only (no sharing) for now.
+
+**Version numbering**: `package.json` gained a real `version` field (starting at `1.0.0`). `vite.config.ts` reads it at build time and injects it as a global constant `__APP_VERSION__` (via Vite's `define`, declared for TypeScript in `src/vite-env.d.ts`). It's shown in the app header, the footer, and appended to both printed documents' captions ("Generated with the Lasalle Army Maker v1.0.0..."), so a screenshot or printout always says which version produced it. Bump `package.json`'s `version` for future rounds and it flows through automatically.
+
+**Accounts + save/load**: added Supabase (hosted Postgres + Auth) as an optional backend — optional in the sense that the app works identically to every prior round if it isn't configured, since none of this is required to use the builder. `src/lib/supabaseClient.ts` reads two `VITE_`-prefixed env vars (URL + anon key) and exposes a `supabaseConfigured` boolean; every piece of new UI checks that flag and simply doesn't render if it's false, so nothing changes for anyone (including Troy, until he finishes setup) who hasn't wired up a Supabase project. Building blocks:
+
+- `src/lib/useAuth.ts` — session state via Supabase's `getSession`/`onAuthStateChange`, plus `signInWithGoogle()` (delegates to Supabase's `signInWithOAuth`) and `signOut()`.
+- `supabase/schema.sql` — creates one table, `army_lists` (`id`, `user_id`, `name`, `data jsonb`, timestamps), with Row Level Security policies restricting every select/insert/update/delete to rows where `auth.uid() = user_id`. This is the actual privacy boundary — enforced by Postgres on Supabase's servers, not just app code — which is what makes the anon key safe to ship publicly in the built site.
+- `src/lib/savedLists.ts` — thin CRUD wrapper (`listSavedLists`, `saveList`, `loadList`, `deleteList`) around that table.
+- `src/components/AccountPanel.tsx` — new sidebar panel (renders nothing if Supabase isn't configured): sign-in-with-Google button when signed out; when signed in, shows the account email, a "save as new" name field, an "update existing list" link when one's loaded, and a list of saved army lists with Load/Delete actions.
+
+Setup is entirely Troy's own external work (creating the Supabase project, wiring Google OAuth via Google Cloud Console, adding the two env vars to Netlify) — written up step by step as a standalone doc, `SUPABASE_SETUP.md`, delivered alongside this round. Verified locally with Playwright both with and without Supabase env vars set: with none set, the app renders and behaves exactly as round 6 (no Account panel, zero console errors); a full `tsc -b` + `npm run build` pass was also clean.
 
 ## What's built
 
@@ -73,23 +89,12 @@ A full React + TypeScript + Vite + Tailwind army builder for *Lasalle Second Edi
 - Organic-vs-reserve brigade coloring and which brigades are "either" corps vs strictly line/elite were reconstructed from the booklet's visual layout (colors, corner shapes) from memory of page images, not from machine-readable text — worth a spot check against a physical/PDF copy if something looks off. Essential-brigade flags, army maxima, and all point costs were read directly and should be reliable.
 - Historical date restrictions and foreign-contingent eligibility (who's whose ally/client) are shown as reference text only, not hard-enforced — matches the booklet's own "the rest is up to you" philosophy (p.5). Any nation can currently be added as a foreign contingent to any other.
 
-## Deployment status — BLOCKED, needs Troy's action
+## Deployment status — RESOLVED (this sandbox still can't push directly, but that's fine)
 
-Two infrastructure walls hit in this sandboxed session, both confirmed not workaroundable from here:
+This sandboxed session's git credential is scoped to an empty "authorized repository set," so `git push` from here always fails with "not in this session's authorized repository set" — confirmed repeatedly, still true as of round 7. That's a permanent limitation of this environment, not a project problem, and there's now a working process around it:
 
-1. **GitHub**: this session's git credential is scoped to "this session's authorized repository set," which is empty — `git push` and the GitHub API both refuse with "not in this session's authorized repository set." Creating a repo via `POST /user/repos` is also blocked ("sessions are bound to their configured repositories"). This looks like a Claude Code-on-the-web repo-binding feature that a Cowork session never gets offered. No tool in this session can grant it.
-2. **Netlify direct deploy**: created the site successfully via the Netlify MCP connector (`lasalle-army-builder`, team `nf_team_dev`, id `ee02b0e5-6a33-4ab8-8c6f-9b9d18440b34`, URL `http://lasalle-army-builder.netlify.app`). But the MCP's own recommended deploy path (`npx @netlify/mcp@latest --proxy-path ...`) uploads straight to `netlify-mcp.netlify.app`, which this sandbox's egress policy blocks outright (confirmed via raw curl: `CONNECT tunnel failed, response 403`, not a token/timing issue). Also tried the built-in browser (runs on Troy's own device, different network) — but Netlify login there needs Google sign-in, and typing a password into that login form would cross the "never enter credentials" rule, so that path stops at the login screen and was not pursued further.
+- Repo: `https://github.com/Tromac2020/lasalle-army-builder` — Troy owns this and pushes from his own Windows machine.
+- Hosting: Netlify site `lasalle-army-builder` is connected to that GitHub repo for continuous deployment — every push to `master` auto-deploys, no manual drag-and-drop needed anymore.
+- **Per-round workflow**: this session builds/commits/packages a source zip and a dist zip → Troy extracts the source zip's contents into his real local repo folder (merging, not replacing — see the folder-name/`robocopy` note above if extracting over an existing checkout) → `git add -A && git commit && git push` on his machine → Netlify picks it up automatically within roughly a minute.
 
-**Files already delivered to Troy**: `lasalle-army-builder-dist.zip` (built, ready to drag onto Netlify) and `lasalle-army-builder-source.zip` (full source), both sent via chat and also written to his Downloads folder.
-
-## Fastest path to finish (for Troy or a future session)
-
-1. Netlify: open `https://app.netlify.com/sites/lasalle-army-builder/deploys` (already logged in on his own machine) and drag `lasalle-army-builder-dist.zip` onto the deploy area — live in ~10 seconds. Or connect the GitHub repo once it exists for continuous deploys instead.
-2. GitHub: unzip `lasalle-army-builder-source.zip` anywhere, then:
-   ```
-   git init -q  (skip if already a repo)
-   git remote add origin https://github.com/Tromac2020/lasalle-army-builder.git
-   git branch -M master
-   git push -u origin master
-   ```
-   (create the empty repo on github.com first, no README/gitignore, so there's no merge conflict).
+No action items remain here; this section is kept for context on why every round's delivery includes a source zip rather than a direct push.

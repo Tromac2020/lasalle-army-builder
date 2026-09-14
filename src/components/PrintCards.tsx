@@ -72,7 +72,8 @@ export default function PrintCards({ army }: { army: ArmyState }) {
       <h1 className="text-xl font-bold mb-1">{nation?.name ?? 'Army'} — Unit Cards</h1>
       <p className="text-xs text-stone-500 mb-4">
         One card per unit in the order of battle. Cut apart and use as tabletop tracking sheets. Icon artwork is the
-        official game's own artwork, used with the rights holder's permission.
+        official game's own artwork, used with the rights holder's permission. Generated with Lasalle Army Maker v
+        {__APP_VERSION__}.
       </p>
       {cards.length === 0 && <p className="text-sm text-stone-500 italic">No units purchased yet.</p>}
       <div className="flex flex-wrap gap-3">

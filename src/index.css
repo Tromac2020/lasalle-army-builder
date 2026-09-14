@@ -30,4 +30,9 @@ body {
   .print-only {
     background: #fff !important;
   }
+  .print-only,
+  .print-only * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
 }

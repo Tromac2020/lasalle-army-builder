@@ -126,7 +126,7 @@ export default function PrintList({ army }: { army: ArmyState }) {
       )}
 
       <div className="text-[10px] text-stone-400 mt-8">
-        Generated with the Lasalle Army Maker. Lasalle and Lasalle Second Edition are copyright Sam Mustafa Publishing LLC.
+        Generated with the Lasalle Army Maker v{__APP_VERSION__}. Lasalle and Lasalle Second Edition are copyright Sam Mustafa Publishing LLC.
       </div>
     </div>
   );

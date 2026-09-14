@@ -6,3 +6,8 @@ dist-ssr
 .vscode/*
 !.vscode/extensions.json
 *.tsbuildinfo
+
+# Local Supabase credentials — never commit real keys. See .env.example.
+.env
+.env.*
+!.env.example
